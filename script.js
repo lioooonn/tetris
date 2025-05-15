@@ -16,27 +16,22 @@ const startButton = document.getElementById('start-button');
 const restartButton = document.getElementById('restart-button');
 const scoreElement = document.getElementById('score');
 
-let arena = createMatrix(10, 20);
-let dropCounter = 0;
-let dropInterval = 1000;
-let lastTime = 0;
-let score = 0;
-let nextPieces = [];
-let holdPiece = null;
-let canHold = true;
+let arena, dropCounter, dropInterval, lastTime, score, highScore;
+let nextPieces, holdPiece, canHold;
+let gameRunning = false;
 
 const colors = [
     null,
-    '#FF0D72', // T
-    '#0DC2FF', // I
-    '#0DFF72', // S
-    '#F538FF', // Z
-    '#FF8E0D', // L
-    '#FFE138', // J
-    '#3877FF'  // O
+    '#FF0D72', '#0DC2FF', '#0DFF72',
+    '#F538FF', '#FF8E0D', '#FFE138', '#3877FF'
 ];
 
 const PIECES = 'TILSZJO';
+
+const player = {
+    pos: {x: 0, y: 0},
+    matrix: null,
+};
 
 function createMatrix(w, h) {
     const matrix = [];
@@ -188,6 +183,7 @@ function drawNext() {
 }
 
 function update(time = 0) {
+    if (!gameRunning) return;
     const deltaTime = time - lastTime;
     lastTime = time;
     dropCounter += deltaTime;
@@ -201,7 +197,7 @@ function update(time = 0) {
 }
 
 function updateScore() {
-    scoreElement.innerText = `Score: ${score}`;
+    scoreElement.innerText = `Score: ${score}\nHigh Score: ${highScore}`;
 }
 
 function nextPiece() {
@@ -225,35 +221,28 @@ function playerReset() {
     player.pos.x = (arena[0].length / 2 | 0) - (player.matrix[0].length / 2 | 0);
     canHold = true;
     if (collide(arena, player)) {
+        gameRunning = false;
+        if (score > highScore) {
+            highScore = score;
+            localStorage.setItem('highScore', highScore);
+        }
+        updateScore();
         gameOverScreen.style.display = 'flex';
-        cancelAnimationFrame(update);
     }
 }
 
-const player = {
-    pos: {x: 0, y: 0},
-    matrix: null,
-};
-
 document.addEventListener('keydown', event => {
-    if (event.key === 'ArrowLeft') {
-        playerMove(-1);
-    } else if (event.key === 'ArrowRight') {
-        playerMove(1);
-    } else if (event.key === 'ArrowDown') {
-        playerDrop();
-    } else if (event.key === 'q') {
-        playerRotate(-1);
-    } else if (event.key === 'w') {
-        playerRotate(1);
-    } else if (event.key === ' ') {
-        while (!collide(arena, player)) {
-            player.pos.y++;
-        }
-        player.pos.y--;
-        playerDrop();
-    } else if (event.key === 'Shift') {
-        playerHold();
+    if (!gameRunning) return;
+
+    switch (event.key) {
+        case 'ArrowLeft': playerMove(-1); break;
+        case 'ArrowRight': playerMove(1); break;
+        case 'ArrowDown': playerDrop(); break;
+        case 'ArrowUp':
+        case 'w': playerRotate(1); break;
+        case 'q': playerRotate(-1); break;
+        case ' ': while (!collide(arena, player)) player.pos.y++; player.pos.y--; playerDrop(); break;
+        case 'Shift': playerHold(); break;
     }
 });
 
@@ -268,13 +257,18 @@ restartButton.addEventListener('click', () => {
 });
 
 function initGame() {
+    gameRunning = true;
     arena = createMatrix(10, 20);
     score = 0;
     dropInterval = 1000;
+    dropCounter = 0;
+    lastTime = 0;
     nextPieces = [];
     holdPiece = null;
     canHold = true;
+    highScore = parseInt(localStorage.getItem('highScore')) || 0;
     playerReset();
     updateScore();
     update();
 }
+
