@@ -86,6 +86,18 @@ function collide(arena, player) {
     return false;
 }
 
+function getGhostPosition(player, arena) {
+    const ghost = {
+        matrix: player.matrix,
+        pos: { x: player.pos.x, y: player.pos.y }
+    };
+    while (!collide(arena, ghost)) {
+        ghost.pos.y++;
+    }
+    ghost.pos.y--;
+    return ghost;
+}
+
 function rotate(matrix, dir) {
     for (let y = 0; y < matrix.length; ++y) {
         for (let x = 0; x < y; ++x) {
