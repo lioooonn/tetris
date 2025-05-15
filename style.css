@@ -26,6 +26,10 @@ canvas {
   font-size: 20px;
 }
 
+#game-over {
+  display: none;
+}
+
 .overlay {
   position: fixed;
   top: 0;
