@@ -162,7 +162,15 @@ function arenaSweep() {
 function draw() {
     context.fillStyle = '#000';
     context.fillRect(0, 0, canvas.width, canvas.height);
+
     drawMatrix(arena, {x: 0, y: 0}, context);
+
+    // Draw ghost piece
+    const ghost = getGhostPosition(player, arena);
+    context.globalAlpha = 0.3;  // lower opacity
+    drawMatrix(player.matrix, ghost.pos, context);
+    context.globalAlpha = 1.0;  // reset to normal
+
     drawMatrix(player.matrix, player.pos, context);
 }
 
